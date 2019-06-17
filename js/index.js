@@ -2,6 +2,7 @@
 pieceset = 'wikipedia'
 files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+flip = false;
 humanBlack = false;
 humanWhite = true; 
 chess = new Chess();
@@ -9,10 +10,19 @@ var selectedPiece;
 
 
 $(document).ready(function(){ 
-    for (i = 0; i < 64; i++) {
-        coords = String(files[((i%8))]) + String(8 - Math.floor(i/8));
-        color = ((Math.floor(i/8)%2 == (i%8)%2) ? "white" : "black");
-        $('.chessboard').append("<div class='square " + color + "' data-coords='" + coords + "'></div>");
+    if (!flip) {
+        for (i = 0; i < 64; i++) {
+            coords = String(files[((i%8))]) + String(8 - Math.floor(i/8));
+            color = ((Math.floor(i/8)%2 == (i%8)%2) ? "white" : "black");
+            $('.chessboard').append("<div class='square " + color + "' data-coords='" + coords + "'></div>");
+        }
+    } else {
+        for (i = 63; i >= 0; i--) {
+            coords = String(files[((i%8))]) + String(8 - Math.floor(i/8));
+            console.log(coords);
+            color = ((Math.floor(i/8)%2 == (i%8)%2) ? "white" : "black");
+            $('.chessboard').append("<div class='square " + color + "' data-coords='" + coords + "'></div>");
+        }
     }
 
     setUpFEN(startFEN);
@@ -132,6 +142,7 @@ function enableDragging() {
     $('.piece').draggable({
         start: function (event, ui) {
             pieceToSquare(this).css({zIndex: 100});
+            showMoves(this);
         },
         revertDuration: 0,
         revert: 'invalid',
@@ -142,6 +153,7 @@ function enableDragging() {
 
 
 function setUpFEN(fen) {
+
     x = 0;
     y = 0;
     fen.split('').forEach(function(letter) {
