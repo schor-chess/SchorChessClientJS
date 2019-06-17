@@ -31,12 +31,25 @@ $(document).ready(function(){
 
 
 
+function canPlay(piece) {
+    verdict = false;
+    if ($(piece).children('img').attr('src').indexOf("b") > 0) {
+        verdict = humanBlack;
+    } else {
+        verdict = humanWhite;
+    }
+    return verdict;
+}
+
 
 function selectPiece(piece) {
-    showMoves(piece);
-    selectedPiece = piece;
-    $('.highlight').remove();
-    $('.square[data-coords=' + $(piece).attr('data-coords') + ']').append("<div class='highlight'></div>");
+    
+    if (canPlay(piece)) {
+        showMoves(piece);
+        selectedPiece = piece;
+        $('.highlight').remove();
+        $('.square[data-coords=' + $(piece).attr('data-coords') + ']').append("<div class='highlight'></div>");
+    }
 }
 
 function enableClicking() {
@@ -48,9 +61,7 @@ function enableClicking() {
         }
     });
 
-    $(".square").click(function(){
-        console.log("squareclick");
-        
+    $(".square").click(function(){        
         if (selectedPiece && ($(selectedPiece).attr('data-coords') != $(this).attr('data-coords'))){
             makeMove(selectedPiece, this);
             selectedPiece = 0;
@@ -100,6 +111,10 @@ function squareToPiece(square) {
 
 
 function makeMove(piece, square) {
+    if(!canPlay(piece)) {
+        bounceBack(piece);
+        return;
+    }
     piece = $(piece);
     square = $(square);
     move = {from:piece.attr("data-coords"), to:$(square).attr("data-coords")};
@@ -122,10 +137,15 @@ function makeMove(piece, square) {
             setUpFEN(chess.fen());
         }
     } else {
-        origin = $(".square[data-coords = " + piece.attr("data-coords") + "]");
-        origin.append(piece.detach().css({top: 0,left: 0}));
-        piece.click();
+        bounceBack(piece);
     }
+}
+
+
+function bounceBack(piece) {
+    origin = $(".square[data-coords = " + piece.attr("data-coords") + "]");
+    origin.append(piece.detach().css({top: 0,left: 0}));
+    piece.click();
 }
 
 function enableDragging() {
@@ -142,13 +162,18 @@ function enableDragging() {
     $('.piece').draggable({
         start: function (event, ui) {
             pieceToSquare(this).css({zIndex: 100});
-            showMoves(this);
+            if (canPlay(this)) {
+                showMoves(this);
+            }
         },
         revertDuration: 0,
         revert: 'invalid',
         scroll: false,
     });
 }
+
+
+
 
 
 
