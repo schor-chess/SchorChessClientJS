@@ -15,11 +15,10 @@ $(document).ready(function(){
         $('.chessboard').append("<div class='square " + color + "' data-coords='" + coords + "'></div>");
     }
 
-
     setUpFEN(startFEN);
-    enableDragging();
-    enableClicking();
+
 });
+
 
 
 
@@ -94,19 +93,26 @@ function makeMove(piece, square) {
     piece = $(piece);
     square = $(square);
     move = {from:piece.attr("data-coords"), to:$(square).attr("data-coords")};
-    // console.log("moving", move);
-    if(chess.move(move)) {
-        // console.log("destination has ", square.children().length);
+    if ((piece.children('img').attr("src").indexOf('P') != -1) && ($(square).attr('data-coords').indexOf('8') + $(square).attr('data-coords').indexOf('1') != -2)) {
+        console.log("PROMOTION");
+        move.promotion = 'q';
+        
+    }
+    resp = chess.move(move);
+    if(resp) {
         square.empty()
-        // console.log("emptied, now has ", square.children().length);
         square.append(piece.detach().css({top: 0,left: 0}));
-        // console.log("added, now has ", square.children().length);
         piece.attr("data-coords", square.attr("data-coords"));
         hideMoves();
         $(".pgn").html(chess.pgn({ max_width: 5, newline_char: '<br/>' }));
+        special = resp.flags.indexOf("e") + resp.flags.indexOf("k") + resp.flags.indexOf("q") + resp.flags.indexOf("p");
+        if (special != -4) {
+            console.log("special", special);
+            $('.piece').remove();
+            setUpFEN(chess.fen());
+        }
     } else {
         origin = $(".square[data-coords = " + piece.attr("data-coords") + "]");
-        // origin.empty();
         origin.append(piece.detach().css({top: 0,left: 0}));
         piece.click();
     }
@@ -143,6 +149,8 @@ function setUpFEN(fen) {
         if(letter=='/') {
             y++;
             x=0;
+        } else if (letter == ' ') {
+            return;
         } else if ($.isNumeric(letter)) {
             x += parseInt(letter);
         } else if(letter == String(letter).toUpperCase()) {
@@ -157,4 +165,9 @@ function setUpFEN(fen) {
             x++;
         }
         });
+
+
+
+        enableDragging();
+        enableClicking();
 }
