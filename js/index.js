@@ -30,13 +30,8 @@ function selectPiece(piece) {
     $('.square[data-coords=' + $(piece).attr('data-coords') + ']').append("<div class='highlight'></div>");
 }
 
-
-
 function enableClicking() {
     $(".piece").click(function(){
-        // console.log("piececlick with circles: ", $(this).siblings());
-        // console.log($(this).siblings(".circle"));
-        
         if ($(this).siblings('.circle').length > 0){
             $('.square[data-coords=' + $(this).attr('data-coords') + ']').click();
         } else {
@@ -45,15 +40,20 @@ function enableClicking() {
     });
 
     $(".square").click(function(){
-        // console.log("squareclick");
+        console.log("squareclick");
         
         if (selectedPiece && ($(selectedPiece).attr('data-coords') != $(this).attr('data-coords'))){
             makeMove(selectedPiece, this);
             selectedPiece = 0;
             clearHighlight();
-        } else {
-            if ($(this).find('.piece').length == 0) {
+            hideMoves();
+        } else {            
+            if ($(this).children('.piece').length == 0) {
                 hideMoves();
+                clearHighlight();
+                console.log("cleared");
+            } else {
+                selectPiece(squareToPiece($(this)));
             }
         }
     });
@@ -71,7 +71,12 @@ function showMoves(square) {
     hideMoves();
     moves = chess.moves({verbose:true, square:$(square).attr('data-coords')})
     $.each(moves, function (i, move) { 
-        $("[data-coords=" + move.to + "]").append("<div class='circle'></div>");
+        s = $(".square[data-coords=" + move.to + "]");
+        if (s.children('.piece').length > 0) {
+            s.append("<div class='circle capture'></div>"); 
+        } else {
+            s.append("<div class='circle'></div>");
+        }        
     });
 }
 
