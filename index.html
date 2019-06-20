@@ -4,14 +4,18 @@
 	<meta charset="UTF-8">
 	<title>Chess</title>
 	<link rel="stylesheet" href="css/jquery-ui.min.css">
+	<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 	<script src="js/jquery-ui.min.js"></script>
 	<script src="js/chess.min.js"></script>
-	<script src="js/index.js"></script>
-	<link rel="stylesheet" href="css/index.css">
+	<script src="js/board.js"></script>
+	<script>if (window.module) module = window.module;</script>
+	<link rel="stylesheet" href="css/board.css">
 </head>
 <body>
+	<button class="newGame" onclick="newGame()">New Game</button>
+	<button class="playOffline" onclick="playOffline()">Play Offline</button>
 	<div class="chessboard"></div>
-	<p class="pgn">PGN:</p>
+	<p class="pgn"></p>
 </body>
 </html>

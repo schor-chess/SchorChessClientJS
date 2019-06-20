@@ -3,13 +3,73 @@ pieceset = 'wikipedia'
 files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 flip = false;
-humanBlack = false;
+humanBlack = true;
 humanWhite = true; 
-chess = new Chess();
+chess = new Chess(startFEN);
+const net = require('net');
 var selectedPiece;
 
 
-$(document).ready(function(){ 
+
+
+
+var sock = net.connect({host:'10.0.0.106', port:8080},  () => {
+    
+    console.log("signing in...");
+    user = "alex";
+    sock.write(user + "." + user + '\n');
+  });
+
+function newGame(){
+    console.log('requesting a game...');
+    sock.write('new game\n');
+    $("button").remove();
+}
+
+function playOffline() {
+    setUp();
+}
+
+  sock.on('data', (data) => {
+    console.log(data.toString());
+    data = JSON.parse(data);
+    if (data.Type == "GAME ANNOUNCEMENT") {
+        color = data.Val.split(':')[0];
+        oppRating = data.Val.split(':')[1];
+        oppName = data.Val.split(':')[2];
+
+        alert("Game starting: you are " + color + " versus " + oppName + ", a " + oppRating + "-rated player." );
+        humanWhite = (color=="white");
+        humanBlack = (color=="black");
+        flip = (color=="black");
+        setUp();
+    } else if (data.Type == "MOVE") {
+        piece = coordsToPiece(data.Val.substring(0,2));
+        square = coordsToSquare(data.Val.substring(2,4));
+        makeMove(piece, square, false);
+    }
+
+  });
+  sock.on('end', () => {
+    console.log('disconnected from server');
+  });
+
+
+
+function coordsToPiece(coords) {
+    return $(".piece[data-coords=" + coords + "]");
+}
+
+function coordsToSquare(coords) {
+    return $(".square[data-coords=" + coords + "]");
+}
+
+function setUp(){ 
+    $(".square").remove();
+    $(".piece").remove();
+    chess = new Chess(startFEN);
+
+
     if (!flip) {
         for (i = 0; i < 64; i++) {
             coords = String(files[((i%8))]) + String(8 - Math.floor(i/8));
@@ -19,7 +79,6 @@ $(document).ready(function(){
     } else {
         for (i = 63; i >= 0; i--) {
             coords = String(files[((i%8))]) + String(8 - Math.floor(i/8));
-            console.log(coords);
             color = ((Math.floor(i/8)%2 == (i%8)%2) ? "white" : "black");
             $('.chessboard').append("<div class='square " + color + "' data-coords='" + coords + "'></div>");
         }
@@ -27,7 +86,7 @@ $(document).ready(function(){
 
     setUpFEN(startFEN);
 
-});
+}
 
 
 
@@ -63,7 +122,7 @@ function enableClicking() {
 
     $(".square").click(function(){        
         if (selectedPiece && ($(selectedPiece).attr('data-coords') != $(this).attr('data-coords'))){
-            makeMove(selectedPiece, this);
+            makeMove(selectedPiece, this, true);
             selectedPiece = 0;
             clearHighlight();
             hideMoves();
@@ -110,8 +169,8 @@ function squareToPiece(square) {
 }
 
 
-function makeMove(piece, square) {
-    if(!canPlay(piece)) {
+function makeMove(piece, square, player) {
+    if(!canPlay(piece) & player) {
         bounceBack(piece);
         return;
     }
@@ -125,6 +184,10 @@ function makeMove(piece, square) {
     }
     resp = chess.move(move);
     if(resp) {
+        if (player) {
+            console.log("sending.....");
+            sock.write(String(move.from) + String(move.to) + "\n");
+        }
         square.empty()
         square.append(piece.detach().css({top: 0,left: 0}));
         piece.attr("data-coords", square.attr("data-coords"));
@@ -155,7 +218,7 @@ function enableDragging() {
             square = $(this);
             piece = ui.draggable;
             pieceToSquare(piece).css({zIndex:99});
-            makeMove(piece, square);
+            makeMove(piece, square, true);
         }
     });
     

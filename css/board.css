@@ -6,6 +6,10 @@
     z-index: 0;
 }
 
+button {
+    border-radius:10px;
+}
+
 .white {
     background-color: #EEEED2;
 }
@@ -26,7 +30,16 @@
 
 .chessboard {
     width:320px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
+
+body {
+    background-color: rgb(24, 24, 24);
+}
+
 
 .piece {
     width: 40px;
@@ -63,6 +76,7 @@
 }
 
 .pgn {
-    margin-left: 40px;
-    display: inline-block;
+    margin-top:40px;
+    color:white;
+    font-family: sans-serif;
 }
